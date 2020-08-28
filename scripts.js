@@ -2,25 +2,38 @@ const baseEndpoint = 'http://www.recipepuppy.com/api';
 const proxy = 'https://cors-anywhere.herokuapp.com/'; 
 const form = document.querySelector('form.search');
 const recipeEl = document.querySelector('.recipes');
+const checkboxEl = document.querySelectorAll('[type="checkbox"]');
 
-async function fetchRecipes(query) {
-    const response = await fetch(`${proxy}${baseEndpoint}?q=${query}`);
+async function fetchRecipes(query, ingredients) {
+    const ingrString = ingredients.join(',')
+    const response = await fetch(`${proxy}${baseEndpoint}?q=${query}&i=${ingrString}`);
+    console.log(`${proxy}${baseEndpoint}?q=${query}&i=${ingrString}`)
     const data = await response.json();
+    console.log(data)
     return data;
 }
 
 const handleSubmit = async (e) => {
     e.preventDefault();
     const el = e.currentTarget;
-    const searchInput = el.query
+    const searchInput = el.query;
+    // const ingredientInput = el.ingredient;
     fetchAndDisplay(searchInput.value)
 }
 
 async function fetchAndDisplay(query) {
     // Turn the form off
     form.submit.desabled = true;
+
+    let ingredients = [];
+    checkboxEl.forEach(checkbox => {
+        if (checkbox.checked) {
+            ingredients.push(checkbox.name)
+        }
+    })
+
     // Submit the search
-    const recipes = await fetchRecipes(query);
+    const recipes = await fetchRecipes(query, ingredients);
     // Turn the form on
     form.submit.desabled = false;
     displayRecipes(recipes.results);    
@@ -38,8 +51,8 @@ function displayRecipes(recipes) {
         </div>
         `;
     }) 
-    console.log(html)
     recipeEl.innerHTML = html.join('');
 }
+
 form.addEventListener('submit', handleSubmit);
 fetchAndDisplay('pizza');
